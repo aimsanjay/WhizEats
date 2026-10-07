@@ -4,8 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>WhizEats Prototype</title>
+<link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="icon" type="image/png" href="favicon.png" sizes="64x64">
+<link rel="icon" type="image/png" href="icon-512.png" sizes="512x512">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
     --pink:#E8175D; --pink-2:#C2185B; --navy:#0B1B3F; --ink:#1B2333; --muted:#5B6475;
@@ -30,6 +34,20 @@
 
   /* HTML patches drawn over a screen (e.g. breadcrumb on Cloud Kitchen) */
   .ov{position:absolute;background:#FEFEFE;font-family:'Nunito',sans-serif}
+  .ov.crop{background:none;overflow:hidden}
+  .ov.crop img{position:absolute;max-width:none;height:auto;display:block}
+  .ov.fact{pointer-events:none}
+  .ov.yr{background:none}
+  .ov.yr svg{display:block;width:100%;height:100%}
+  .ov.yr text{font-family:'Nunito',sans-serif;font-weight:500;fill:#DCE1E9}
+  .ov.fco{background:none}
+  .ov.fco svg{display:block;width:100%;height:100%}
+  .ov.fco text{font-family:'Nunito',sans-serif}
+  .ov.fco .fh{font-weight:700;fill:#FFFFFF}
+  .ov.fco .fi{font-weight:500;fill:#E2E6EE}
+  .ov.fco .on{fill:#EA1C5E}
+  .ov.photo{border-radius:calc(var(--u)*8);overflow:hidden;background:#EDEBEA}
+  .ov.photo img{display:block;width:100%;height:100%;object-fit:cover}
   .crumb{position:absolute;display:flex;align-items:center;gap:calc(var(--u)*8);font-size:calc(var(--u)*13.5);font-weight:600;color:#1B2333;white-space:nowrap}
   .crumb svg{width:calc(var(--u)*17);height:calc(var(--u)*17);stroke:#1B2333}
   .crumb .chev{width:calc(var(--u)*11);height:calc(var(--u)*11);margin:0 calc(var(--u)*4)}
@@ -112,6 +130,12 @@
 
 <div id="stage"></div>
 
+<!-- colour filters for footer links (values set per screen in setFooterFilters) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="fRed" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/></filter>
+  <filter id="fLink" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"/></filter>
+</svg>
+
 <div id="bar" role="toolbar" aria-label="Prototype controls">
   <button id="backBtn" title="Back">←</button>
   <span class="sep"></span>
@@ -135,16 +159,94 @@ const SITE  = 'https://www.wizardcomm.net';
 const MAPS  = 'https://www.google.com/maps/search/?api=1&query=MP+Island+18+Kankurgachi+Road+Kolkata+700054';
 
 const NAV_TARGET = {home:'home',features:'features',solutions:'solutions',pricing:'pricing',about:'about',contact:'contact',partner:'partner'};
-const SOLUTIONS_MENU = [['All Solutions','solutions'],['Dine-in Restaurants','dine-in'],['Cloud Kitchens','cloud-kitchen'],['Cafés & Coffee Shops','solutions'],['Food Trucks','solutions']];
-const COMPANY_MENU   = [['About Us','about'],['Careers','careers'],['Partner Program','partner'],['Contact Us','contact']];
+const ABOUT_MENU = [['Careers','careers'],['Partner Program','partner']];
+const SOLUTIONS_MENU = [['All Solutions','solutions'],['Dine-in Restaurants','dine-in'],['Cloud Kitchens','cloud-kitchen'],['Cafés & Coffee Shops','cafes']];
 
-// Footer link targets: Product | Solutions | Resources | Company
+// Footer link targets: Product | Solutions | Resources | About Us
 const FOOT_COLS = [
-  [['features'],['solutions'],['pricing'],['toast','Product updates are coming soon.']],
-  [['dine-in'],['solutions'],['cloud-kitchen'],['solutions']],
+  [['features'],['solutions'],['pricing']],   // "Updates" removed
+  [['dine-in'],['cafes'],['cloud-kitchen']],   // "Food Trucks" removed
   [['toast','The WhizEats blog is coming soon.'],['toast','Help Center is coming soon.'],['toast','Case studies are coming soon.'],['toast','Guides are coming soon.']],
-  [['about'],['careers'],['contact'],['partner']],
+  [['careers'],['partner']],   // "About Us" column (heading itself links to About)
 ];
+
+// Footer "Company" column is redrawn as "About Us" + Careers / Partner Program.
+// [text x, heading top, heading baseline, [item baselines ×3], item cap height, column bottom, next column x, background]
+const FOOT_CO = {
+  home:[1015,813,823,[855,882,910],9,939,1230,'rgb(16,22,34)'],
+  features:[997,799,809,[838,864,890],10,919,1212,'rgb(12,21,38)'],
+  solutions:[998,803,813,[842,868,894],10,923,1215,'rgb(11,22,42)'],
+  'dine-in':[1000,883,893,[912,930,948],9,969,1197,'rgb(0,24,50)'],
+  'cloud-kitchen':[1014,809,819,[846,870,894],9,920,1233,'rgb(9,27,51)'],
+  pricing:[989,834,843,[869,894,919],9,945,1198,'rgb(12,23,43)'],
+  about:[1014,837,847,[873,897,919],9,945,1232,'rgb(11,26,49)'],
+  careers:[662,1325,1334,[1361,1384,1409],9,1435,809,'rgb(9,26,46)'],
+  contact:[1012,803,814,[844,870,896],10,923,1227,'rgb(9,25,48)'],
+  demo:[1023,790,801,[833,861,888],11,919,1241,'rgb(5,28,59)'],
+  partner:[1007,804,814,[844,870,895],10,923,1228,'rgb(11,29,51)'],
+  'partner-types':[992,895,906,[932,951,969],10,989,1192,'rgb(7,25,47)'],
+  cafes:[999,865,875,[898,917,936],10,939,1216,'rgb(0,30,58)'],
+  privacy:[1009,852,863,[887,908,930],10,933,1218,'rgb(0,30,56)'],
+  refund:[1011,843,853,[877,899,921],10,923,1218,'rgb(0,30,58)'],
+  terms:[1012,841,851,[875,897,918],10,921,1222,'rgb(0,29,55)'],
+};
+const FOOT_CO_ITEMS = ['Careers','Partner Program'];
+function footerCompanyOverlay(key){
+  const c=FOOT_CO[key]; if(!c) return [];
+  const [x,ht,hb,bases,cap,bottom,nextX,bg]=c;
+  const x1=x-6, y1=ht-6, x2=nextX-16, y2=bottom+4, w=x2-x1, h=y2-y1;
+  const items=FOOT_CO_ITEMS.map((t,i)=>
+    `<text class="fi" data-row="${i}" x="${x}" y="${bases[i]+1}" font-size="${cap/0.705}">${t}</text>`).join('');
+  return [{r:[x1,y1,x2,y2],cls:'fco',html:
+    `<svg viewBox="${x1} ${y1} ${w} ${h}" preserveAspectRatio="none"><rect x="${x1}" y="${y1}" width="${w}" height="${h}" fill="${bg}"/>
+     <text class="fh" data-row="-1" x="${x}" y="${hb+1}" font-size="${(hb-ht)/0.705}">About Us</text>${items}</svg>`}];
+}
+
+// "Food Trucks" footer link: [x0, top, x1, bottom] of its text, footer background
+const FOOD_TRUCKS = {
+  home:[595,928,662,937,'rgb(15,21,33)'], features:[574,908,640,917,'rgb(11,19,38)'], solutions:[572,912,639,921,'rgb(11,22,42)'],
+  'dine-in':[607,957,675,966,'rgb(0,24,50)'], 'cloud-kitchen':[604,909,676,918,'rgb(9,27,51)'], pricing:[581,935,646,943,'rgb(12,23,41)'],
+  about:[604,933,675,942,'rgb(9,25,48)'], careers:[399,1424,462,1433,'rgb(9,26,46)'], contact:[604,912,677,921,'rgb(9,25,48)'],
+  demo:[604,906,678,916,'rgb(5,28,59)'], partner:[600,912,671,921,'rgb(10,28,52)'], 'partner-types':[603,977,674,987,'rgb(8,24,47)'],
+};
+// "Updates" footer link (Product column), same format
+const UPDATES = {
+  home:[417,928,463,939,'rgb(15,21,33)'], features:[386,908,432,919,'rgb(13,20,39)'], solutions:[383,912,430,923,'rgb(10,21,41)'],
+  'dine-in':[432,958,479,969,'rgb(0,24,50)'], cafes:[433,946,480,957,'rgb(0,28,58)'], 'cloud-kitchen':[428,909,477,920,'rgb(10,26,49)'],
+  pricing:[404,935,450,946,'rgb(11,22,42)'], about:[429,933,478,945,'rgb(9,25,48)'], careers:[288,1423,337,1436,'rgb(9,26,46)'],
+  contact:[429,912,478,924,'rgb(9,25,48)'], demo:[426,906,477,919,'rgb(5,29,57)'], partner:[427,912,476,923,'rgb(11,29,51)'],
+  'partner-types':[431,978,478,989,'rgb(7,23,46)'], privacy:[464,941,514,954,'rgb(0,30,56)'], refund:[465,932,515,944,'rgb(0,30,58)'],
+  terms:[465,931,515,943,'rgb(0,30,56)'],
+};
+// Footer links that no longer exist are painted over with the footer background
+function removedLinksOverlay(key){
+  return [FOOD_TRUCKS[key], UPDATES[key]].filter(Boolean)
+    .map(b=>({r:[b[0]-4,b[1]-4,b[2]+4,b[3]+4],html:'',bg:b[4]}));
+}
+
+// A piece of the screen image re-placed elsewhere (used to slide nav items over)
+function cropOverlay(img,W,H,dest,sx,sy){
+  const dw=dest[2]-dest[0], dh=dest[3]-dest[1];
+  return {r:dest,cls:'crop',html:`<img src="images/${img}" alt="" style="width:${W/dw*100}%;left:${-sx/dw*100}%;top:${-sy/dh*100}%">`};
+}
+
+// Breadcrumb + page label in the Dine-in style. o: {r, parent, here, tag, icon, crumbTop, tagTop, scale} (omit parent for label only)
+const ICONS = {
+  home:'<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>',
+  chev:'<path d="m9 5 7 7-7 7"/>',
+  cloud:'<path d="M7 18a4 4 0 0 1-.6-7.95A5.5 5.5 0 0 1 17 8.5a4.5 4.5 0 0 1 0 9.5z"/><path d="M9.5 21h5M10 18v3M14 18v3"/>',
+  handshake:'<path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/>',
+  headset:'<path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M21 14v3a2 2 0 0 1-2 2h-1v-6h3zM3 14v3a2 2 0 0 0 2 2h1v-6H3z"/><path d="M18 19a4 4 0 0 1-4 3h-2"/>',
+  briefcase:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/>',
+};
+const svgIcon=(name,cls='',sw=2)=>`<svg${cls?` class="${cls}"`:''} viewBox="0 0 24 24" fill="none" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]}</svg>`;
+function crumbOverlay(o){
+  const s=o.scale||1, at=t=>`left:calc(var(--u)*${6/s});top:calc(var(--u)*${t/s})`;
+  // scale < 1 shrinks the design unit for screens drawn at a smaller scale (Careers)
+  return {r:o.r,html:`<div style="--u:calc(100cqw / var(--W) * ${s})">
+    ${o.parent?`<div class="crumb" style="${at(o.crumbTop)}">${svgIcon('home')}<span>${o.parent}</span>${svgIcon('chev','chev',3)}<span class="here">${o.here}</span></div>`:''}
+    <div class="ptag" style="${at(o.tagTop)}">${svgIcon(o.icon)}<span>${o.tag}</span></div></div>`};
+}
 
 const PAGES = {
   home:{title:'Home',img:'home.jpg',w:1536,h:1024,
@@ -170,13 +272,14 @@ const PAGES = {
     nav:{y:[25,60],book:[1373,23,1507,60],items:[['home',400,438],['features',481,536],['solutions',580,640],['pricing',684,728],['about',772,832],['contact',877,927]]},
     foot:{x:[382,572,798,998,1215],rows:[838,864,890,917],crow:[842,873,903],logo:[64,797,200,830],by:993,bx:[[1070,1150],[1200,1295],[1345,1424]]},
     spots:[
-      {r:[67,530,286,757],go:'dine-in'},{r:[305,530,523,757],go:'cloud-kitchen'},{r:[541,530,759,757],go:'dine-in'},
+      {r:[67,530,286,757],go:'cafes'},{r:[305,530,523,757],go:'cloud-kitchen'},{r:[541,530,759,757],go:'dine-in'},
       {r:[776,530,994,757],go:'cloud-kitchen'},{r:[1012,530,1230,757],go:'dine-in'},{r:[1247,530,1465,757],go:'pricing'},
     ]},
 
   'dine-in':{title:'Solutions › Dine-in Restaurant',img:'dine-in.jpg',w:1536,h:1024,
-    nav:{y:[20,52],book:[1360,16,1494,51],items:[['home',346,384],['features',426,482],['solutions',524,586],['pricing',628,672],['about',716,777],['contact',820,871],['partner',914,1023]]},
+    nav:{y:[20,52],book:[1360,16,1494,51],items:[['home',346,384],['features',426,482],['solutions',524,586],['pricing',628,672],['about',716,777],['contact',820,871]]},
     foot:{x:[431,607,811,1000,1197],rows:[908,926,944,962],crow:[913,935,957],logo:[112,878,235,902],by:1009,bx:[[1038,1109],[1155,1240],[1287,1352]]},
+    overlay:[{r:[904,14,1034,60],html:''}],   // Partner Program lives in the footer, not the top nav
     spots:[
       {r:[72,90,92,108],go:'home'},{r:[96,90,152,108],go:'solutions'},
       {r:[72,394,246,432],go:'features'},
@@ -185,21 +288,21 @@ const PAGES = {
       ...[[45,222],[225,402],[405,580],[582,757],[760,935],[938,1115]].map(x=>({r:[x[0],505,x[1],650],go:'features'})),
     ]},
 
+  cafes:{title:'Solutions › Cafés & Coffee Shops',img:'cafes.jpg',w:1536,h:1024,logo:[58,10,288,60],
+    nav:{y:[18,50],book:[1334,15,1477,51],items:[['home',364,400],['features',441,495],['solutions',538,595],['pricing',638,681],['about',723,784],['contact',826,874]]},
+    foot:{x:[433,603,813,999,1204],rows:[893,912,932,951],crow:[896,920,944],logo:[94,858,221,884],by:996,bx:[[1052,1122],[1169,1253],[1299,1370]]},
+    spots:[
+      {r:[63,88,82,105],go:'home'},{r:[88,88,146,105],go:'solutions'},
+      {r:[65,392,242,429],go:'features'},
+      {r:[261,392,425,429],modal:'video',title:'WhizEats Café Walkthrough'},
+      {r:[1071,800,1265,838],go:'demo'},
+      ...[[42,216],[220,396],[400,578],[582,758],[762,940],[944,1126]].map(x=>({r:[x[0],500,x[1],652],go:'features'})),
+    ]},
+
   'cloud-kitchen':{title:'Solutions › Cloud Kitchen',img:'cloud-kitchen.jpg',w:1536,h:1024,
     nav:{y:[22,55],book:[1367,18,1501,56],items:[['home',403,443],['features',485,542],['solutions',585,647],['pricing',689,735],['about',777,840],['contact',882,934]]},
     foot:{x:[428,603,819,1014,1233],rows:[842,866,890,914],crow:[846,876,905],logo:[96,802,218,830],by:983,bx:[[1050,1133],[1182,1281],[1329,1411]]},
-    // Breadcrumb + section label, matching the Dine-in screen
-    overlay:{r:[84,78,470,143],html:`
-      <div class="crumb" style="left:calc(var(--u)*7);top:calc(var(--u)*7)">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>
-        <span>Solutions</span>
-        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg>
-        <span class="here">Cloud Kitchen</span>
-      </div>
-      <div class="ptag" style="left:calc(var(--u)*7);top:calc(var(--u)*36)">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4 4 0 0 1-.6-7.95A5.5 5.5 0 0 1 17 8.5a4.5 4.5 0 0 1 0 9.5z"/><path d="M9.5 21h5M10 18v3M14 18v3"/></svg>
-        <span>CLOUD KITCHEN</span>
-      </div>`},
+    overlay:crumbOverlay({r:[85,78,470,143],parent:'Solutions',here:'Cloud Kitchen',tag:'CLOUD KITCHEN',icon:'cloud',crumbTop:7,tagTop:36}),
     spots:[
       {r:[89,83,113,102],go:'home'},{r:[116,83,180,102],go:'solutions'},
       {r:[1051,714,1287,769],go:'solutions'},
@@ -219,6 +322,10 @@ const PAGES = {
   about:{title:'About Us',img:'about.jpg',w:1536,h:1024,
     nav:{y:[22,55],book:[1366,17,1501,56],items:[['home',403,443],['features',485,543],['solutions',585,647],['pricing',689,735],['about',777,839],['contact',881,933]]},
     foot:{x:[428,603,819,1013,1232],rows:[870,893,916,939],crow:[873,901,928],logo:[96,830,218,858],by:994,bx:[[1050,1133],[1181,1281],[1328,1411]]},
+    overlay:[
+      {r:[767,575,897,742],cls:'photo',html:'<img src="images/anup.jpg" alt="Anup Kumar Ghosh">'},
+      {r:[1107,575,1228,742],cls:'photo',html:'<img src="images/biswajit.jpg" alt="Biswajit Banerjee">'},
+    ],
     spots:[
       {r:[241,367,440,387],href:SITE},
       {r:[987,769,1232,806],go:'careers'},
@@ -228,9 +335,15 @@ const PAGES = {
     ]},
 
   careers:{title:'Careers',img:'careers.jpg',w:1024,h:1536,maxW:1300,
-    nav:{y:[25,52],book:[892,21,1001,54],items:[['home',282,312],['features',338,381],['solutions',410,457],['pricing',485,520],['about',545,592],['company',617,678],['contact',702,741]]},
+    nav:{y:[25,52],book:[892,21,1001,54],items:[['home',282,312],['features',338,381],['solutions',410,457],['pricing',485,520],['about',545,592],['contact',617,656]]},
     foot:{x:[289,398,551,662,809],fw:100,cw:145,rows:[1357,1381,1405,1429],crow:[1363,1391,1419],logo:[70,1323,178,1349],by:1506,bx:[[628,701],[743,830],[871,944]]},
+    overlay:[
+      {r:[606,16,756,64],html:''},                                  // hide "Company ▾" and the old "Contact"
+      cropOverlay('careers.jpg',1024,1536,[614,22,661,52],699,22),  // …and slide "Contact" into the gap
+      crumbOverlay({r:[64,72,440,132],parent:'About Us',here:'Careers',tag:'CAREERS',icon:'briefcase',crumbTop:6,tagTop:33,scale:.72}),
+    ],
     spots:[
+      {r:[67,76,85,92],go:'home'},{r:[87,76,135,92],go:'about'},
       {r:[70,320,233,352],scroll:620},
       {r:[853,640,950,660],toast:'All 4 open roles are listed below — more coming soon.'},
       {r:[817,697,925,727],modal:'apply',job:'Senior Full Stack Developer'},
@@ -244,6 +357,7 @@ const PAGES = {
   contact:{title:'Contact',img:'contact.jpg',w:1536,h:1024,
     nav:{y:[20,54],book:[1376,19,1502,56],items:[['home',359,398],['features',447,504],['solutions',552,614],['pricing',661,707],['about',754,814],['contact',861,912]]},
     foot:{x:[428,604,818,1012,1227],rows:[840,866,891,917],crow:[840,869,897],logo:[102,795,222,823],by:991,bx:[[1047,1130],[1177,1278],[1325,1408]]},
+    overlay:crumbOverlay({r:[100,80,520,141],tag:'CONTACT US',icon:'headset',tagTop:33}),   // label only, no breadcrumb
     form:{id:'contact',submit:[595,532,986,572],fields:[
       {r:[595,243,784,282],name:'name',ph:'Your Name*',req:1},
       {r:[797,243,986,282],name:'email',ph:'Your Email*',req:1,type:'email'},
@@ -280,9 +394,14 @@ const PAGES = {
     ]},
 
   partner:{title:'Partner Program',img:'partner.jpg',w:1536,h:1024,
-    nav:{y:[22,55],book:[1347,17,1482,56],items:[['home',365,404],['features',450,508],['solutions',554,616],['pricing',662,708],['about',752,815],['contact',860,911],['partner',957,1069]]},
+    nav:{y:[22,55],book:[1347,17,1482,56],items:[['home',365,404],['features',450,508],['solutions',554,616],['pricing',662,708],['about',752,815],['contact',860,911]]},
     foot:{x:[426,599,813,1007,1228],rows:[840,866,891,917],crow:[842,871,900],logo:[92,797,216,825],by:990,bx:[[1032,1116],[1169,1271],[1322,1406]]},
+    overlay:[
+      {r:[948,16,1082,66],html:''},   // hide "Partner Program" from the top navigation
+      crumbOverlay({r:[85,78,480,139],parent:'About Us',here:'Partner Program',tag:'PARTNER PROGRAM',icon:'handshake',crumbTop:6,tagTop:34}),
+    ],
     spots:[
+      {r:[89,82,113,101],go:'home'},{r:[116,82,182,101],go:'about'},
       {r:[91,348,251,382],modal:'partner'},
       {r:[270,348,423,382],go:'partner-types'},
       {r:[185,647,255,667],modal:'partner',ptype:'Referral Partner'},
@@ -304,33 +423,122 @@ const PAGES = {
       {r:[799,720,948,850],modal:'partner',ptype:'Implementation Partner'},
       {r:[971,720,1120,850],modal:'partner',ptype:'Industry Partner'},
     ]},
+
+  // Legal pages — opened from the footer's bottom bar. Breadcrumb "Home" is part of the artwork.
+  privacy:{title:'Privacy Policy',img:'privacy.jpg',w:1536,h:1024,logo:[52,10,288,62],
+    nav:{y:[18,52],book:[1337,15,1482,52],items:[['home',386,422],['features',473,526],['solutions',577,634],['pricing',685,726],['about',780,838],['contact',889,938]]},
+    foot:{x:[464,629,833,1009,1206],rows:[882,903,925,946],crow:[885,909,932],logo:[92,845,238,872],by:994,bx:[[1065,1136],[1183,1270],[1317,1388]]},
+    spots:[{r:[62,88,136,109],go:'home'}]},
+
+  terms:{title:'Terms of Service',img:'terms.jpg',w:1536,h:1024,logo:[50,12,288,62],
+    nav:{y:[18,52],book:[1338,16,1483,53],items:[['home',373,408],['features',459,511],['solutions',561,618],['pricing',669,710],['about',760,817],['contact',868,915]]},
+    foot:{x:[465,629,834,1012,1209],rows:[870,892,915,936],crow:[874,898,922],logo:[92,834,236,862],by:994,bx:[[1052,1125],[1180,1269],[1325,1398]]},
+    spots:[{r:[60,88,134,109],go:'home'}]},
+
+  refund:{title:'Refund Policy',img:'refund.jpg',w:1536,h:1024,logo:[53,12,290,62],
+    nav:{y:[18,52],book:[1337,16,1481,53],items:[['home',373,409],['features',459,512],['solutions',562,620],['pricing',670,711],['about',761,819],['contact',869,917]]},
+    foot:{x:[465,630,834,1011,1207],rows:[872,893,916,938],crow:[875,900,925],logo:[92,834,236,862],by:994,bx:[[1054,1125],[1182,1269],[1326,1397]]},
+    spots:[{r:[62,88,136,110],go:'home'}]},
 };
-const ORDER = ['home','features','solutions','dine-in','cloud-kitchen','pricing','about','careers','contact','demo','partner','partner-types'];
+// "2025" in each footer's copyright line → redrawn as "2026".
+// [x0, top, x1, bottom] of the digits in design px, footer background, text colour.
+const COPYRIGHT_YEAR = '2026';
+const COPY_BOX = {
+  home:[87,990,117,999,'rgb(17,24,34)'], features:[78,987,107,996,'rgb(7,15,34)'], solutions:[79,988,109,997,'rgb(9,20,38)'],
+  'dine-in':[125,1005,150,1013,'rgb(0,20,44)'], 'cloud-kitchen':[111,978,141,987,'rgb(9,27,51)'], pricing:[125,992,153,1001,'rgb(15,26,46)'],
+  about:[111,989,140,998,'rgb(5,20,43)'], careers:[84,1502,110,1510,'rgb(8,26,48)'], contact:[117,985,146,995,'rgb(11,27,52)'],
+  demo:[104,986,134,996,'rgb(6,27,58)'], partner:[107,985,136,994,'rgb(8,26,50)'], 'partner-types':[116,1009,140,1017,'rgb(6,23,41)'],
+  cafes:[107,990,131,998,'rgb(2,31,60)'],
+  privacy:[107,989,133,997,'rgb(0,29,52)'], refund:[106,989,133,997,'rgb(0,30,58)'], terms:[105,989,132,997,'rgb(0,30,58)'],
+};
+function copyrightOverlay(key){
+  const b=COPY_BOX[key]; if(!b) return [];
+  const [x0,t,x1,bt,bg]=b, px=2, py=3, w=x1-x0+1+px*2, h=bt-t+1+py*2;
+  return [{r:[x0-px,t-py,x1+1+px,bt+1+py],cls:'yr',html:
+    `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><rect width="${w}" height="${h}" fill="${bg}"/>
+     <text x="${px}" y="${h-py}" font-size="${(bt-t+1)/0.705}" textLength="${x1-x0+1}" lengthAdjust="spacingAndGlyphs">${COPYRIGHT_YEAR}</text></svg>`}];
+}
+
+const ORDER = ['home','features','solutions','dine-in','cafes','cloud-kitchen','pricing','about','careers','contact','demo','partner','partner-types','privacy','terms','refund'];
 
 /* ---------- build the hotspot list for a page ---------- */
 function allSpots(p){
-  const s = [{r:[18,15,270,70],go:'home'}];
+  const s = [{r:p.logo||[18,15,270,70],go:'home'}];
   const n = p.nav, [y1,y2] = n.y;
   n.items.forEach(([key,x1,x2])=>{
     const r=[x1-8,y1,x2+8,y2];
     if(key==='solutions') s.push({r,go:'solutions',menu:SOLUTIONS_MENU});
-    else if(key==='company') s.push({r,go:'about',menu:COMPANY_MENU});
+    else if(key==='about') s.push({r,go:'about',menu:ABOUT_MENU});
     else s.push({r,go:NAV_TARGET[key]});
   });
   s.push({r:n.book,go:'demo'});
   s.push(...p.spots);
 
   const f = p.foot, fw=f.fw||150, cw=f.cw||175;
-  const rh = Math.min(24,(f.rows[1]-f.rows[0])-2);
+  const rh = footRowH(f);
   FOOT_COLS.forEach((col,ci)=>col.forEach((t,ri)=>{
-    const x=f.x[ci], y=f.rows[ri], r=[x-4,y-rh/2,x+fw,y+rh/2];
-    s.push(t[0]==='toast'?{r,toast:t[1]}:{r,go:t[0]});
+    const r=footRect(p,ci,ri), foot=[ci,ri];
+    s.push(t[0]==='toast'?{r,toast:t[1],foot}:{r,go:t[0],foot});
   }));
+  const co=FOOT_CO[current];
+  if(co) s.push({r:[co[0]-4,co[1]-4,co[0]+90,co[2]+4],go:'about',foot:[3,-1]});
   [PHONE,MAIL,SITE].forEach((h,i)=>s.push({r:[f.x[4]-6,f.crow[i]-rh/2,f.x[4]+cw,f.crow[i]+rh/2],href:h}));
   s.push({r:f.logo,go:'home'});
-  const legal=['Privacy Policy','Terms of Service','Refund Policy'];
-  f.bx.forEach(([a,b],i)=>s.push({r:[a-4,f.by-10,b+4,f.by+10],toast:legal[i]+' page is coming soon.'}));
+  LEGAL.forEach((page,i)=>s.push({r:footRect(p,LEGAL_COL,i),go:page,foot:[LEGAL_COL,i]}));
   return s;
+}
+
+/* ---------- footer active (red) link ---------- */
+const LEGAL = ['privacy','terms','refund'], LEGAL_COL = 4;   // bottom bar links, treated as footer column 4
+const footRowH = f => Math.min(24,(f.rows[1]-f.rows[0])-2);
+function footRect(p,ci,ri){
+  const f=p.foot;
+  if(ci===LEGAL_COL){ const [a,b]=f.bx[ri]; return [a-4,f.by-10,b+4,f.by+10]; }
+  const rh=footRowH(f), x=f.x[ci], y=f.rows[ri];
+  return [x-4, y-rh/2, x+(f.fw||150), y+rh/2];
+}
+// Items already drawn pink in the screen image: [column, row]
+const BAKED_ACTIVE = {'cloud-kitchen':[1,2]};
+const RED = [234,28,94], LINK = [228,232,240];
+let footActive = null;   // {page, col, row} — the footer link the user last clicked
+
+function defaultFootActive(key){
+  if(key==='about') return {col:3,row:-1};
+  if(LEGAL.includes(key)) return {col:LEGAL_COL,row:LEGAL.indexOf(key)};
+  for(let ci=0;ci<FOOT_COLS.length;ci++){
+    const ri=FOOT_COLS[ci].findIndex(t=>t[0]===key);
+    if(ri>=0) return {col:ci,row:ri};
+  }
+  return null;
+}
+
+// Recolour footer text in place: map the image's link colour ↔ red, keeping the anti-aliasing.
+function setFooterFilters(bgCss){
+  const b=bgCss.match(/\d+/g).map(v=>v/255), P=RED.map(v=>v/255), Wt=LINK.map(v=>v/255);
+  const Lb=(b[0]+b[1]+b[2])/3, Lw=.9;
+  const toRed=b.map((bc,c)=>{const k=(P[c]-bc)/(Lw-Lb); return [k/3,k/3,k/3,0,bc-k*Lb].join(' ');});
+  const toLink=b.map((bc,c)=>{const k=(Wt[c]-bc)/(P[0]-b[0]); return [k,0,0,0,bc-k*b[0]].join(' ');});
+  document.querySelector('#fRed feColorMatrix').setAttribute('values',toRed.join(' ')+' 0 0 0 1 0');
+  document.querySelector('#fLink feColorMatrix').setAttribute('values',toLink.join(' ')+' 0 0 0 1 0');
+}
+
+function paintFooterActive(){
+  const p=PAGES[current], co=FOOT_CO[current];
+  stage.querySelectorAll('.ov.fact').forEach(el=>el.remove());
+  stage.querySelectorAll('.fco text').forEach(t=>t.classList.remove('on'));
+  const a=(footActive && footActive.page===current) ? footActive : defaultFootActive(current);
+  const baked=BAKED_ACTIVE[current];
+  const isBaked=a && baked && a.col===baked[0] && a.row===baked[1];
+  const recolour=(ci,ri,filter)=>{
+    const r=footRect(p,ci,ri), o=cropOverlay(p.img,p.w,p.h,r,r[0],r[1]);
+    const el=document.createElement('div'); el.className='ov crop fact'; place(el,r,p);
+    el.innerHTML=o.html; el.style.filter=`url(#${filter})`;
+    const firstHs=stage.querySelector('.hs'); stage.insertBefore(el,firstHs);
+  };
+  if(baked && !isBaked) recolour(baked[0],baked[1],'fLink');
+  if(!a) return;
+  if(a.col===3) stage.querySelector(`.fco text[data-row="${a.row}"]`)?.classList.add('on');
+  else if(!isBaked) recolour(a.col,a.row,'fRed');
 }
 
 /* ---------- render ---------- */
@@ -357,10 +565,11 @@ function render(key){
   img.className='screen'; img.src='images/'+p.img; img.alt=p.title+' screen'; img.draggable=false;
   stage.appendChild(img);
 
-  if(p.overlay){
-    const ov=document.createElement('div'); ov.className='ov'; place(ov,p.overlay.r,p);
-    ov.innerHTML=p.overlay.html; stage.appendChild(ov);
-  }
+  [].concat(p.overlay||[], copyrightOverlay(key), footerCompanyOverlay(key), removedLinksOverlay(key)).forEach(o=>{
+    const ov=document.createElement('div'); ov.className='ov'+(o.cls?' '+o.cls:''); place(ov,o.r,p);
+    if(o.bg) ov.style.background=o.bg;
+    ov.innerHTML=o.html; stage.appendChild(ov);
+  });
 
   allSpots(p).forEach(sp=>{
     const a=document.createElement('a');
@@ -373,6 +582,7 @@ function render(key){
   });
 
   if(p.form) buildForm(p);
+  if(FOOT_CO[key]){ setFooterFilters(FOOT_CO[key][7]); paintFooterActive(); }
   document.getElementById('jump').value=key;
   window.scrollTo({top:0,behavior:'instant'});
 }
@@ -434,6 +644,10 @@ function submitForm(id){
 /* ---------- actions ---------- */
 function act(sp){
   if(sp.plan) pendingPlan=sp.plan;
+  if(sp.foot){
+    footActive={page:sp.go||current, col:sp.foot[0], row:sp.foot[1]};
+    if(!sp.go) paintFooterActive();   // toast links stay on this page — repaint now
+  }
   if(sp.go) return go(sp.go);
   if(sp.modal) return openModal(sp.modal,sp);
   if(sp.toast) return toast(sp.toast);
@@ -513,8 +727,8 @@ const MODALS={
         <button class="btn primary" type="submit">Sign In →</button>
         <div class="small">Not a partner yet? <a href="#" data-modal="partner" style="color:var(--pink)">Apply now</a></div>
       </form>`,
-  video:()=>`<span class="tag">Product Tour</span>
-      <h2>WhizEats Dine-in Walkthrough</h2><div class="rule"></div>
+  video:d=>`<span class="tag">Product Tour</span>
+      <h2>${esc(d.title||'WhizEats Dine-in Walkthrough')}</h2><div class="rule"></div>
       <div class="video"><div class="play"><svg width="26" height="26" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg></div></div>
       <p>The recorded product tour is coming soon. Want to see it live? Book a personalised demo with our team.</p>
       <div class="actions"><button class="btn ghost" data-close>Close</button><button class="btn primary" data-go="demo">Book a Live Demo</button></div>`,
