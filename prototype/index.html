@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WhizEats Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pink:#E8175D; --pink-2:#C2185B; --navy:#0B1B3F; --ink:#1B2333; --muted:#5B6475;
+    --line:#E6E8EE; --bg:#EEF0F4; --card:#FFFFFF;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{padding-bottom:64px;background:var(--bg);font-family:'Outfit',system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+
+  /* ---------- stage ---------- */
+  #stage{position:relative;margin:0 auto;width:100%;container-type:inline-size;background:#fff;box-shadow:0 0 40px rgba(11,27,63,.08);animation:fade .35s ease}
+  #stage img.screen{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  /* 1 design px on the current screen */
+  #stage{--u:calc(100cqw / var(--W))}
+
+  .hs{position:absolute;cursor:pointer;border-radius:calc(var(--u)*6);transition:background .15s, box-shadow .15s}
+  .hs:hover{background:rgba(232,23,93,.06);box-shadow:0 0 0 calc(var(--u)*1.5) rgba(232,23,93,.35)}
+  body.show-hs .hs, #stage.flash .hs{background:rgba(59,130,246,.16);box-shadow:0 0 0 calc(var(--u)*1.5) rgba(59,130,246,.75)}
+  #stage.flash .hs{animation:flash .9s ease}
+  @keyframes flash{0%,100%{opacity:0}20%,70%{opacity:1}}
+
+  /* HTML patches drawn over a screen (e.g. breadcrumb on Cloud Kitchen) */
+  .ov{position:absolute;background:#FEFEFE;font-family:'Nunito',sans-serif}
+  .crumb{position:absolute;display:flex;align-items:center;gap:calc(var(--u)*8);font-size:calc(var(--u)*13.5);font-weight:600;color:#1B2333;white-space:nowrap}
+  .crumb svg{width:calc(var(--u)*17);height:calc(var(--u)*17);stroke:#1B2333}
+  .crumb .chev{width:calc(var(--u)*11);height:calc(var(--u)*11);margin:0 calc(var(--u)*4)}
+  .crumb .here{color:var(--pink)}
+  .ptag{position:absolute;display:flex;align-items:center;gap:calc(var(--u)*10);font-size:calc(var(--u)*13.5);font-weight:800;letter-spacing:.01em;color:var(--pink);white-space:nowrap}
+  .ptag svg{width:calc(var(--u)*20);height:calc(var(--u)*20);stroke:var(--pink)}
+
+  /* dropdown menus on nav items */
+  .menu{position:absolute;z-index:20;min-width:calc(var(--u)*210);background:#fff;border:1px solid var(--line);border-radius:calc(var(--u)*10);
+    box-shadow:0 14px 34px rgba(11,27,63,.14);padding:calc(var(--u)*6);display:none;font-size:calc(var(--u)*14)}
+  .menu.open{display:block;animation:fade .18s ease}
+  .menu a{display:block;padding:calc(var(--u)*9) calc(var(--u)*12);border-radius:calc(var(--u)*7);color:var(--ink);text-decoration:none;font-weight:500;cursor:pointer}
+  .menu a:hover{background:#FDE8EF;color:var(--pink)}
+
+  /* live form fields laid over the drawn ones */
+  .fld{position:absolute;border:1px solid transparent;border-radius:calc(var(--u)*5);background:transparent;
+    font:inherit;font-size:calc(var(--u)*12);color:var(--ink);padding:0 calc(var(--u)*11);outline:none;transition:background .15s,border-color .15s}
+  textarea.fld{padding-top:calc(var(--u)*11);resize:none}
+  select.fld{appearance:none;-webkit-appearance:none;cursor:pointer}
+  .fld:focus,.fld.filled{background:#fff;border-color:var(--pink);box-shadow:0 0 0 calc(var(--u)*3) rgba(232,23,93,.12)}
+  .fld.filled:not(:focus){border-color:#D5D9E2;box-shadow:none}
+  .fld:not(.filled):not(:focus){color:transparent}
+  .fld::placeholder{color:#8A93A5}
+  .fld:not(:focus)::placeholder{color:transparent}
+  select.fld option{color:var(--ink)}
+  .fld.err{border-color:#EF4444 !important;background:rgba(239,68,68,.06);animation:shake .35s}
+  @keyframes shake{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+
+  /* ---------- toolbar ---------- */
+  #bar{position:fixed;right:16px;bottom:16px;z-index:50;display:flex;gap:6px;align-items:center;background:rgba(11,27,63,.92);
+    backdrop-filter:blur(8px);color:#fff;padding:6px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.25);font-size:13px}
+  #bar button,#bar select{font:inherit;color:#fff;background:transparent;border:0;padding:7px 12px;border-radius:999px;cursor:pointer}
+  #bar button:hover,#bar select:hover{background:rgba(255,255,255,.12)}
+  #bar button.on{background:var(--pink)}
+  #bar select option{color:var(--ink)}
+  #bar .sep{width:1px;height:18px;background:rgba(255,255,255,.2)}
+
+  /* ---------- toast ---------- */
+  #toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);opacity:0;z-index:70;background:var(--navy);color:#fff;
+    padding:12px 18px;border-radius:12px;font-size:14px;box-shadow:0 12px 30px rgba(0,0,0,.25);transition:.25s;pointer-events:none;max-width:calc(100vw - 32px)}
+  #toast.show{opacity:1;transform:translate(-50%,0)}
+
+  /* ---------- modal ---------- */
+  #overlay{position:fixed;inset:0;z-index:60;background:rgba(11,27,63,.55);display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(3px)}
+  #overlay.open{display:flex}
+  .modal{position:relative;width:100%;max-width:480px;max-height:calc(100vh - 32px);overflow:auto;background:#fff;border-radius:18px;padding:30px 28px 26px;box-shadow:0 30px 70px rgba(0,0,0,.3);animation:pop .25s ease}
+  @keyframes pop{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
+  .modal .x{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;border:0;background:#F3F4F7;cursor:pointer;font-size:18px;color:var(--muted)}
+  .modal .x:hover{background:#FDE8EF;color:var(--pink)}
+  .modal .tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--pink)}
+  .modal h2{margin:8px 0 6px;font-size:24px;color:var(--navy);line-height:1.2}
+  .modal p{margin:0 0 18px;color:var(--muted);font-size:14.5px;line-height:1.55}
+  .modal .rule{width:44px;height:3px;background:var(--pink);border-radius:3px;margin:0 0 16px}
+  .modal form{display:grid;gap:10px}
+  .modal .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .modal input,.modal select,.modal textarea{width:100%;font:inherit;font-size:14px;padding:11px 12px;border:1px solid #D9DDE5;border-radius:9px;outline:none;color:var(--ink);background:#fff}
+  .modal input:focus,.modal select:focus,.modal textarea:focus{border-color:var(--pink);box-shadow:0 0 0 3px rgba(232,23,93,.12)}
+  .modal input.err,.modal select.err{border-color:#EF4444}
+  .modal textarea{min-height:80px;resize:vertical}
+  .modal label.file{display:flex;align-items:center;gap:10px;padding:12px;border:1.5px dashed #D9DDE5;border-radius:9px;color:var(--muted);font-size:14px;cursor:pointer}
+  .modal label.file:hover{border-color:var(--pink);color:var(--pink)}
+  .modal label.file input{display:none}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:inherit;font-weight:600;font-size:15px;padding:12px 20px;border-radius:10px;border:0;cursor:pointer;text-decoration:none}
+  .btn.primary{background:linear-gradient(90deg,#D81B60,#F0386B);color:#fff}
+  .btn.primary:hover{filter:brightness(1.06)}
+  .btn.ghost{background:#fff;color:var(--pink);border:1.5px solid var(--pink)}
+  .btn.ghost:hover{background:#FDE8EF}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+  .actions .btn{flex:1}
+  .center{text-align:center}
+  .check{width:68px;height:68px;border-radius:50%;background:#FDE8EF;display:grid;place-items:center;margin:4px auto 12px}
+  .check svg{width:34px;height:34px;stroke:var(--pink)}
+  .video{aspect-ratio:16/9;border-radius:12px;background:linear-gradient(135deg,#0B1B3F,#3A1240 60%,#C2185B);display:grid;place-items:center;margin-bottom:16px;color:#fff}
+  .video .play{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center}
+  .small{font-size:12.5px;color:#8A93A5;text-align:center;margin-top:6px}
+  @media (max-width:520px){ .modal .row{grid-template-columns:1fr} #bar .label{display:none} }
+</style>
+</head>
+<body>
+
+<div id="stage"></div>
+
+<div id="bar" role="toolbar" aria-label="Prototype controls">
+  <button id="backBtn" title="Back">←</button>
+  <span class="sep"></span>
+  <select id="jump" aria-label="Jump to screen"></select>
+  <span class="sep"></span>
+  <button id="hsBtn" title="Show clickable areas (H)">◎ <span class="label">Hotspots</span></button>
+</div>
+
+<div id="toast"></div>
+<div id="overlay"><div class="modal" id="modal"></div></div>
+
+<script>
+/* =====================================================================
+   WhizEats clickable prototype
+   Each screen is the design image with hotspots in design-pixel coords.
+   ===================================================================== */
+
+const PHONE = 'tel:+919830359903';
+const MAIL  = 'mailto:info@wizardcomm.net';
+const SITE  = 'https://www.wizardcomm.net';
+const MAPS  = 'https://www.google.com/maps/search/?api=1&query=MP+Island+18+Kankurgachi+Road+Kolkata+700054';
+
+const NAV_TARGET = {home:'home',features:'features',solutions:'solutions',pricing:'pricing',about:'about',contact:'contact',partner:'partner'};
+const SOLUTIONS_MENU = [['All Solutions','solutions'],['Dine-in Restaurants','dine-in'],['Cloud Kitchens','cloud-kitchen'],['Cafés & Coffee Shops','solutions'],['Food Trucks','solutions']];
+const COMPANY_MENU   = [['About Us','about'],['Careers','careers'],['Partner Program','partner'],['Contact Us','contact']];
+
+// Footer link targets: Product | Solutions | Resources | Company
+const FOOT_COLS = [
+  [['features'],['solutions'],['pricing'],['toast','Product updates are coming soon.']],
+  [['dine-in'],['solutions'],['cloud-kitchen'],['solutions']],
+  [['toast','The WhizEats blog is coming soon.'],['toast','Help Center is coming soon.'],['toast','Case studies are coming soon.'],['toast','Guides are coming soon.']],
+  [['about'],['careers'],['contact'],['partner']],
+];
+
+const PAGES = {
+  home:{title:'Home',img:'home.jpg',w:1536,h:1024,
+    nav:{y:[25,60],book:[1366,20,1503,61],items:[['home',400,440],['features',488,548],['solutions',596,660],['pricing',708,756],['about',804,868],['contact',916,971]]},
+    foot:{x:[416,594,821,1015,1230],rows:[851,878,905,932],crow:[855,885,916],logo:[72,805,212,840],by:995,bx:[[1085,1167],[1211,1311],[1354,1436]]},
+    spots:[
+      {r:[48,505,251,548],go:'demo'},
+      {r:[280,505,473,548],go:'features'},
+      {r:[100,610,290,665],go:'features'},{r:[345,610,530,665],go:'features'},{r:[585,610,770,665],go:'features'},
+      {r:[828,610,1040,665],go:'features'},{r:[1090,610,1260,665],go:'features'},{r:[1315,610,1480,665],go:'features'},
+    ]},
+
+  features:{title:'Features',img:'features.jpg',w:1536,h:1024,
+    nav:{y:[25,60],book:[1367,24,1502,61],items:[['home',406,444],['features',489,545],['solutions',590,650],['pricing',694,739],['about',779,838],['contact',878,929]]},
+    foot:{x:[385,573,798,997,1212],rows:[834,860,886,913],crow:[838,869,899],logo:[64,795,200,826],by:992,bx:[[1066,1145],[1196,1291],[1342,1420]]},
+    spots:(()=>{
+      const xs=[[82,368],[378,645],[655,915],[925,1192],[1202,1450]];
+      const r1=['dine-in','pricing','cloud-kitchen','dine-in','demo'], r2=['solutions','cloud-kitchen','dine-in','dine-in','partner'];
+      return [...xs.map((x,i)=>({r:[x[0],520,x[1],645],go:r1[i]})), ...xs.map((x,i)=>({r:[x[0],650,x[1],775],go:r2[i]}))];
+    })()},
+
+  solutions:{title:'Solutions',img:'solutions.jpg',w:1536,h:1024,
+    nav:{y:[25,60],book:[1373,23,1507,60],items:[['home',400,438],['features',481,536],['solutions',580,640],['pricing',684,728],['about',772,832],['contact',877,927]]},
+    foot:{x:[382,572,798,998,1215],rows:[838,864,890,917],crow:[842,873,903],logo:[64,797,200,830],by:993,bx:[[1070,1150],[1200,1295],[1345,1424]]},
+    spots:[
+      {r:[67,530,286,757],go:'dine-in'},{r:[305,530,523,757],go:'cloud-kitchen'},{r:[541,530,759,757],go:'dine-in'},
+      {r:[776,530,994,757],go:'cloud-kitchen'},{r:[1012,530,1230,757],go:'dine-in'},{r:[1247,530,1465,757],go:'pricing'},
+    ]},
+
+  'dine-in':{title:'Solutions › Dine-in Restaurant',img:'dine-in.jpg',w:1536,h:1024,
+    nav:{y:[20,52],book:[1360,16,1494,51],items:[['home',346,384],['features',426,482],['solutions',524,586],['pricing',628,672],['about',716,777],['contact',820,871],['partner',914,1023]]},
+    foot:{x:[431,607,811,1000,1197],rows:[908,926,944,962],crow:[913,935,957],logo:[112,878,235,902],by:1009,bx:[[1038,1109],[1155,1240],[1287,1352]]},
+    spots:[
+      {r:[72,90,92,108],go:'home'},{r:[96,90,152,108],go:'solutions'},
+      {r:[72,394,246,432],go:'features'},
+      {r:[265,394,423,432],modal:'video'},
+      {r:[1078,820,1229,857],go:'demo'},
+      ...[[45,222],[225,402],[405,580],[582,757],[760,935],[938,1115]].map(x=>({r:[x[0],505,x[1],650],go:'features'})),
+    ]},
+
+  'cloud-kitchen':{title:'Solutions › Cloud Kitchen',img:'cloud-kitchen.jpg',w:1536,h:1024,
+    nav:{y:[22,55],book:[1367,18,1501,56],items:[['home',403,443],['features',485,542],['solutions',585,647],['pricing',689,735],['about',777,840],['contact',882,934]]},
+    foot:{x:[428,603,819,1014,1233],rows:[842,866,890,914],crow:[846,876,905],logo:[96,802,218,830],by:983,bx:[[1050,1133],[1182,1281],[1329,1411]]},
+    // Breadcrumb + section label, matching the Dine-in screen
+    overlay:{r:[84,78,470,143],html:`
+      <div class="crumb" style="left:calc(var(--u)*7);top:calc(var(--u)*7)">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>
+        <span>Solutions</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg>
+        <span class="here">Cloud Kitchen</span>
+      </div>
+      <div class="ptag" style="left:calc(var(--u)*7);top:calc(var(--u)*36)">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4 4 0 0 1-.6-7.95A5.5 5.5 0 0 1 17 8.5a4.5 4.5 0 0 1 0 9.5z"/><path d="M9.5 21h5M10 18v3M14 18v3"/></svg>
+        <span>CLOUD KITCHEN</span>
+      </div>`},
+    spots:[
+      {r:[89,83,113,102],go:'home'},{r:[116,83,180,102],go:'solutions'},
+      {r:[1051,714,1287,769],go:'solutions'},
+    ]},
+
+  pricing:{title:'Pricing',img:'pricing.jpg',w:1536,h:1024,
+    nav:{y:[25,60],book:[1367,23,1505,60],items:[['home',413,451],['features',495,555],['solutions',595,656],['pricing',699,745],['about',787,848],['contact',891,941]]},
+    foot:{x:[404,581,796,989,1198],rows:[866,890,915,940],crow:[870,898,927],logo:[110,830,240,860],by:997,bx:[[1058,1136],[1185,1278],[1327,1403]]},
+    spots:[
+      {r:[180,695,387,726],go:'demo',plan:'Starter'},
+      {r:[486,695,702,726],go:'demo',plan:'Professional'},
+      {r:[798,695,1016,726],go:'demo',plan:'Business'},
+      {r:[1101,695,1319,727],go:'contact'},
+      {r:[1025,762,1232,797],go:'contact'},
+    ]},
+
+  about:{title:'About Us',img:'about.jpg',w:1536,h:1024,
+    nav:{y:[22,55],book:[1366,17,1501,56],items:[['home',403,443],['features',485,543],['solutions',585,647],['pricing',689,735],['about',777,839],['contact',881,933]]},
+    foot:{x:[428,603,819,1013,1232],rows:[870,893,916,939],crow:[873,901,928],logo:[96,830,218,858],by:994,bx:[[1050,1133],[1181,1281],[1328,1411]]},
+    spots:[
+      {r:[241,367,440,387],href:SITE},
+      {r:[987,769,1232,806],go:'careers'},
+      {r:[563,716,582,736],toast:'Opens Sumit Sarkar’s LinkedIn profile.'},
+      {r:[917,716,936,736],toast:'Opens Anup Kumar Ghosh’s LinkedIn profile.'},
+      {r:[1249,713,1268,733],toast:'Opens Biswajit Banerjee’s LinkedIn profile.'},
+    ]},
+
+  careers:{title:'Careers',img:'careers.jpg',w:1024,h:1536,maxW:1300,
+    nav:{y:[25,52],book:[892,21,1001,54],items:[['home',282,312],['features',338,381],['solutions',410,457],['pricing',485,520],['about',545,592],['company',617,678],['contact',702,741]]},
+    foot:{x:[289,398,551,662,809],fw:100,cw:145,rows:[1357,1381,1405,1429],crow:[1363,1391,1419],logo:[70,1323,178,1349],by:1506,bx:[[628,701],[743,830],[871,944]]},
+    spots:[
+      {r:[70,320,233,352],scroll:620},
+      {r:[853,640,950,660],toast:'All 4 open roles are listed below — more coming soon.'},
+      {r:[817,697,925,727],modal:'apply',job:'Senior Full Stack Developer'},
+      {r:[817,765,925,795],modal:'apply',job:'Product Designer (UI/UX)'},
+      {r:[817,833,925,862],modal:'apply',job:'QA Automation Engineer'},
+      {r:[817,900,925,930],modal:'apply',job:'Business Development Executive'},
+      {r:[70,1116,233,1148],go:'about'},
+      {r:[707,1229,901,1268],modal:'apply',job:''},
+    ]},
+
+  contact:{title:'Contact',img:'contact.jpg',w:1536,h:1024,
+    nav:{y:[20,54],book:[1376,19,1502,56],items:[['home',359,398],['features',447,504],['solutions',552,614],['pricing',661,707],['about',754,814],['contact',861,912]]},
+    foot:{x:[428,604,818,1012,1227],rows:[840,866,891,917],crow:[840,869,897],logo:[102,795,222,823],by:991,bx:[[1047,1130],[1177,1278],[1325,1408]]},
+    form:{id:'contact',submit:[595,532,986,572],fields:[
+      {r:[595,243,784,282],name:'name',ph:'Your Name*',req:1},
+      {r:[797,243,986,282],name:'email',ph:'Your Email*',req:1,type:'email'},
+      {r:[595,297,784,336],name:'phone',ph:'Phone Number*',req:1,type:'tel'},
+      {r:[797,297,986,336],name:'company',ph:'Company Name'},
+      {r:[595,351,986,390],name:'topic',ph:'How can we help you?*',req:1,opts:['Book a product demo','Pricing & plans','Technical support','Partnership enquiry','Careers','Something else']},
+      {r:[595,405,986,517],name:'message',ph:'Your Message*',req:1,area:1},
+    ]},
+    spots:[
+      {r:[105,308,521,376],href:PHONE},
+      {r:[105,385,521,453],href:MAIL},
+      {r:[105,462,521,532],href:MAPS},
+      {r:[1108,286,1208,306],href:MAPS},
+      {r:[1213,697,1388,735],go:'demo'},
+    ]},
+
+  demo:{title:'Book a Demo',img:'demo.jpg',w:1536,h:1024,
+    nav:{y:[22,55],book:[1356,17,1500,57],items:[['home',434,473],['features',524,581],['solutions',631,694],['pricing',744,790],['about',839,901],['contact',950,1001]]},
+    foot:{x:[425,603,822,1023,1241],rows:[829,857,884,912],crow:[830,860,891],logo:[86,780,220,808],by:992,bx:[[1057,1143],[1189,1293],[1340,1425]]},
+    form:{id:'demo',submit:[587,628,953,668],fields:[
+      {r:[587,264,762,303],name:'name',ph:'Full Name*',req:1},
+      {r:[775,264,952,303],name:'email',ph:'Work Email*',req:1,type:'email'},
+      {r:[587,318,762,358],name:'phone',ph:'Phone Number*',req:1,type:'tel'},
+      {r:[775,318,952,358],name:'company',ph:'Restaurant / Company Name*',req:1},
+      {r:[587,373,952,412],name:'role',ph:'Your Role*',req:1,opts:['Owner / Founder','General Manager','Operations Manager','Finance / Accounts','IT / Technology','Other']},
+      {r:[587,428,762,467],name:'outlets',ph:'Number of Outlets',type:'number'},
+      {r:[775,428,952,467],name:'country',ph:'Country*',req:1,opts:['India','United Arab Emirates','Bangladesh','Nepal','Singapore','United Kingdom','United States','Other']},
+      {r:[587,482,952,521],name:'source',ph:'How did you hear about us?',opts:['Google search','Social media','Referral / word of mouth','Event / trade show','Partner','Other']},
+      {r:[587,537,952,613],name:'notes',ph:'Tell us about your requirements (optional)',area:1},
+    ]},
+    spots:[
+      {r:[1175,664,1281,682],href:PHONE},
+      {r:[1117,684,1257,702],href:MAIL},
+    ]},
+
+  partner:{title:'Partner Program',img:'partner.jpg',w:1536,h:1024,
+    nav:{y:[22,55],book:[1347,17,1482,56],items:[['home',365,404],['features',450,508],['solutions',554,616],['pricing',662,708],['about',752,815],['contact',860,911],['partner',957,1069]]},
+    foot:{x:[426,599,813,1007,1228],rows:[840,866,891,917],crow:[842,871,900],logo:[92,797,216,825],by:990,bx:[[1032,1116],[1169,1271],[1322,1406]]},
+    spots:[
+      {r:[91,348,251,382],modal:'partner'},
+      {r:[270,348,423,382],go:'partner-types'},
+      {r:[185,647,255,667],modal:'partner',ptype:'Referral Partner'},
+      {r:[523,658,609,678],modal:'partner',ptype:'Implementation Partner'},
+      {r:[864,658,949,678],modal:'partner',ptype:'Technology Partner'},
+      {r:[1204,658,1289,678],modal:'partner',ptype:'Strategic Partner'},
+      {r:[1050,725,1253,764],modal:'partner'},
+    ]},
+
+  'partner-types':{title:'Partner Program › Program Types',img:'partner-types.jpg',w:1536,h:1024,
+    nav:{y:[20,50],book:[1369,17,1501,53],items:[['home',375,413],['features',456,512],['solutions',557,617],['pricing',661,706],['about',748,808],['contact',850,901]]},
+    foot:{x:[430,603,804,991,1192],rows:[928,946,964,982],crow:[928,952,978],logo:[102,886,218,910],by:1013,bx:[[1095,1176],[1212,1310],[1345,1425]]},
+    spots:[
+      {r:[158,293,321,330],modal:'partner'},
+      {r:[338,293,469,330],modal:'login'},
+      {r:[1213,803,1399,831],modal:'partner'},
+      {r:[456,720,605,850],modal:'partner',ptype:'Technology Partner'},
+      {r:[627,720,776,850],modal:'partner',ptype:'Consulting Partner'},
+      {r:[799,720,948,850],modal:'partner',ptype:'Implementation Partner'},
+      {r:[971,720,1120,850],modal:'partner',ptype:'Industry Partner'},
+    ]},
+};
+const ORDER = ['home','features','solutions','dine-in','cloud-kitchen','pricing','about','careers','contact','demo','partner','partner-types'];
+
+/* ---------- build the hotspot list for a page ---------- */
+function allSpots(p){
+  const s = [{r:[18,15,270,70],go:'home'}];
+  const n = p.nav, [y1,y2] = n.y;
+  n.items.forEach(([key,x1,x2])=>{
+    const r=[x1-8,y1,x2+8,y2];
+    if(key==='solutions') s.push({r,go:'solutions',menu:SOLUTIONS_MENU});
+    else if(key==='company') s.push({r,go:'about',menu:COMPANY_MENU});
+    else s.push({r,go:NAV_TARGET[key]});
+  });
+  s.push({r:n.book,go:'demo'});
+  s.push(...p.spots);
+
+  const f = p.foot, fw=f.fw||150, cw=f.cw||175;
+  const rh = Math.min(24,(f.rows[1]-f.rows[0])-2);
+  FOOT_COLS.forEach((col,ci)=>col.forEach((t,ri)=>{
+    const x=f.x[ci], y=f.rows[ri], r=[x-4,y-rh/2,x+fw,y+rh/2];
+    s.push(t[0]==='toast'?{r,toast:t[1]}:{r,go:t[0]});
+  }));
+  [PHONE,MAIL,SITE].forEach((h,i)=>s.push({r:[f.x[4]-6,f.crow[i]-rh/2,f.x[4]+cw,f.crow[i]+rh/2],href:h}));
+  s.push({r:f.logo,go:'home'});
+  const legal=['Privacy Policy','Terms of Service','Refund Policy'];
+  f.bx.forEach(([a,b],i)=>s.push({r:[a-4,f.by-10,b+4,f.by+10],toast:legal[i]+' page is coming soon.'}));
+  return s;
+}
+
+/* ---------- render ---------- */
+const stage = document.getElementById('stage');
+let current = null, pendingPlan = null;
+
+function pct(v,total){return (v/total*100)+'%'}
+function place(el,r,p){
+  el.style.left=pct(r[0],p.w); el.style.top=pct(r[1],p.h);
+  el.style.width=pct(r[2]-r[0],p.w); el.style.height=pct(r[3]-r[1],p.h);
+}
+
+function render(key){
+  const p = PAGES[key] || PAGES.home;
+  key = PAGES[key] ? key : 'home';
+  current = key;
+  document.title = 'WhizEats — ' + p.title;
+  stage.style.setProperty('--W', p.w);
+  stage.style.maxWidth = (p.maxW || p.w) + 'px';
+  stage.innerHTML = '';
+  stage.style.animation='none'; void stage.offsetWidth; stage.style.animation='';
+
+  const img = new Image();
+  img.className='screen'; img.src='images/'+p.img; img.alt=p.title+' screen'; img.draggable=false;
+  stage.appendChild(img);
+
+  if(p.overlay){
+    const ov=document.createElement('div'); ov.className='ov'; place(ov,p.overlay.r,p);
+    ov.innerHTML=p.overlay.html; stage.appendChild(ov);
+  }
+
+  allSpots(p).forEach(sp=>{
+    const a=document.createElement('a');
+    a.className='hs'; place(a,sp.r,p);
+    a.setAttribute('aria-label', sp.go||sp.modal||sp.href||'action');
+    if(sp.href){ a.href=sp.href; if(sp.href.startsWith('http')){a.target='_blank';a.rel='noopener';} }
+    a.addEventListener('click',e=>{ if(!sp.href){e.preventDefault(); act(sp);} });
+    if(sp.menu) attachMenu(a,sp,p);
+    stage.appendChild(a);
+  });
+
+  if(p.form) buildForm(p);
+  document.getElementById('jump').value=key;
+  window.scrollTo({top:0,behavior:'instant'});
+}
+
+function attachMenu(a,sp,p){
+  const m=document.createElement('div'); m.className='menu';
+  m.style.left=pct(sp.r[0],p.w); m.style.top=pct(sp.r[3]+4,p.h);
+  sp.menu.forEach(([label,target])=>{
+    const i=document.createElement('a'); i.textContent=label;
+    i.addEventListener('click',e=>{e.stopPropagation(); go(target);});
+    m.appendChild(i);
+  });
+  let t;
+  const open=()=>{clearTimeout(t); stage.querySelectorAll('.menu.open').forEach(x=>x!==m&&x.classList.remove('open')); m.classList.add('open');};
+  const close=()=>{t=setTimeout(()=>m.classList.remove('open'),180);};
+  [a,m].forEach(el=>{el.addEventListener('mouseenter',open);el.addEventListener('mouseleave',close);});
+  // touch: first tap opens the menu, second tap follows the link
+  a.addEventListener('touchstart',e=>{ if(!m.classList.contains('open')){e.preventDefault(); open();} },{passive:false});
+  stage.appendChild(m);
+}
+
+/* ---------- live forms ---------- */
+function buildForm(p){
+  const F=p.form;
+  F.fields.forEach(f=>{
+    let el;
+    if(f.opts){
+      el=document.createElement('select');
+      el.innerHTML=`<option value="">${f.ph}</option>`+f.opts.map(o=>`<option>${o}</option>`).join('');
+    } else if(f.area){ el=document.createElement('textarea'); el.placeholder=f.ph; }
+    else { el=document.createElement('input'); el.type=f.type||'text'; el.placeholder=f.ph; if(f.type==='number') el.min=1; }
+    el.className='fld'; el.name=f.name; el.dataset.form=F.id; if(f.req) el.dataset.req=1;
+    place(el,f.r,p);
+    const sync=()=>{el.classList.toggle('filled',!!el.value); if(el.value) el.classList.remove('err');};
+    el.addEventListener('input',sync); el.addEventListener('change',sync);
+    stage.appendChild(el);
+  });
+  if(F.id==='demo' && pendingPlan){
+    const n=stage.querySelector('[name=notes]');
+    n.value=`Interested in the ${pendingPlan} plan.`; n.classList.add('filled'); pendingPlan=null;
+  }
+  const btn=document.createElement('a'); btn.className='hs'; place(btn,F.submit,p);
+  btn.setAttribute('aria-label','Submit');
+  btn.addEventListener('click',e=>{e.preventDefault(); submitForm(F.id);});
+  stage.appendChild(btn);
+}
+
+function submitForm(id){
+  const els=[...stage.querySelectorAll(`.fld[data-form="${id}"]`)];
+  const missing=els.filter(el=>el.dataset.req && !el.value.trim());
+  const email=els.find(el=>el.type==='email');
+  els.forEach(el=>el.classList.remove('err'));
+  if(missing.length){ missing.forEach(el=>{void el.offsetWidth; el.classList.add('err');}); missing[0].focus(); toast('Please fill in the highlighted required fields.'); return; }
+  if(email && !/^\S+@\S+\.\S+$/.test(email.value)){ email.classList.add('err'); email.focus(); toast('Please enter a valid email address.'); return; }
+  const data=Object.fromEntries(els.map(el=>[el.name,el.value]));
+  openModal(id==='demo'?'demoDone':'contactDone',data);
+}
+
+/* ---------- actions ---------- */
+function act(sp){
+  if(sp.plan) pendingPlan=sp.plan;
+  if(sp.go) return go(sp.go);
+  if(sp.modal) return openModal(sp.modal,sp);
+  if(sp.toast) return toast(sp.toast);
+  if(sp.scroll!=null){
+    const p=PAGES[current], y=stage.offsetTop + sp.scroll*stage.offsetWidth/p.w;
+    return window.scrollTo({top:y,behavior:'smooth'});
+  }
+}
+function go(key){
+  if('#/'+key===location.hash) render(key); else location.hash='#/'+key;
+}
+window.addEventListener('hashchange',()=>{ closeModal(); render(location.hash.replace('#/','')||'home'); });
+
+/* click on a non-hotspot area → flash the hotspots (Figma-style hint) */
+stage.addEventListener('click',e=>{
+  if(e.target.closest('.hs,.fld,.menu')) return;
+  stage.classList.remove('flash'); void stage.offsetWidth; stage.classList.add('flash');
+  setTimeout(()=>stage.classList.remove('flash'),900);
+});
+
+/* ---------- toast ---------- */
+let tt;
+function toast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+/* ---------- modals ---------- */
+const overlay=document.getElementById('overlay'), modal=document.getElementById('modal');
+const CHECK=`<div class="check"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>`;
+const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const first=s=>esc(String(s||'').trim().split(/\s+/)[0]);
+
+const MODALS={
+  demoDone:d=>`${CHECK}<div class="center">
+      <h2>Thank you, ${first(d.name)}!</h2>
+      <p>Your demo request for <b>${esc(d.company)}</b> has been received. A WhizEats product specialist will reach out at <b>${esc(d.email)}</b> within one business day to schedule your personalised walkthrough.</p>
+      <div class="actions"><button class="btn ghost" data-go="features">Explore Features</button><button class="btn primary" data-go="home">Back to Home</button></div></div>`,
+  contactDone:d=>`${CHECK}<div class="center">
+      <h2>Message sent!</h2>
+      <p>Thanks, ${first(d.name)}. Our team has received your message about <b>${esc(d.topic.toLowerCase())}</b> and will get back to you shortly at <b>${esc(d.email)}</b>.</p>
+      <div class="actions"><button class="btn ghost" data-close>Close</button><button class="btn primary" data-go="home">Back to Home</button></div></div>`,
+  apply:d=>`<span class="tag">Careers</span>
+      <h2>${d.job?'Apply: '+esc(d.job):'Send Us Your Resume'}</h2><div class="rule"></div>
+      <p>${d.job?'Kolkata / Hybrid · Full-time. ':''}Tell us a bit about yourself and attach your resume.</p>
+      <form data-kind="apply" novalidate>
+        <input name="name" placeholder="Full Name*" required>
+        <div class="row"><input name="email" type="email" placeholder="Email*" required><input name="phone" type="tel" placeholder="Phone Number*" required></div>
+        <input name="link" placeholder="LinkedIn / Portfolio URL">
+        <label class="file"><input type="file" name="cv" accept=".pdf,.doc,.docx">📎 <span>Attach resume (PDF, DOC)</span></label>
+        <button class="btn primary" type="submit">Submit Application →</button>
+      </form>`,
+  applyDone:d=>`${CHECK}<div class="center"><h2>Application submitted!</h2>
+      <p>Thanks, ${first(d.name)}. Our hiring team will review your profile and get in touch if there’s a match.</p>
+      <div class="actions"><button class="btn primary" data-close>Done</button></div></div>`,
+  partner:d=>`<span class="tag">Partner Program</span>
+      <h2>Become a WhizEats Partner</h2><div class="rule"></div>
+      <p>Grow together with us. Share a few details and our partnerships team will contact you.</p>
+      <form data-kind="partner" novalidate>
+        <div class="row"><input name="name" placeholder="Full Name*" required><input name="company" placeholder="Company Name*" required></div>
+        <div class="row"><input name="email" type="email" placeholder="Work Email*" required><input name="phone" type="tel" placeholder="Phone Number*" required></div>
+        <select name="ptype" required>
+          <option value="">Partnership type*</option>
+          ${['Referral Partner','Implementation Partner','Technology Partner','Strategic Partner','Consulting Partner','Industry Partner'].map(o=>`<option ${o===d.ptype?'selected':''}>${o}</option>`).join('')}
+        </select>
+        <textarea name="msg" placeholder="Tell us about your business (optional)"></textarea>
+        <button class="btn primary" type="submit">Submit Application →</button>
+      </form>`,
+  partnerDone:d=>`${CHECK}<div class="center"><h2>Welcome aboard, ${first(d.name)}!</h2>
+      <p>Your <b>${esc(d.ptype)}</b> application for <b>${esc(d.company)}</b> has been received. Our partnerships team will contact you within 2 business days.</p>
+      <div class="actions"><button class="btn ghost" data-go="partner-types">Program Types</button><button class="btn primary" data-close>Done</button></div></div>`,
+  login:()=>`<span class="tag">Partner Portal</span>
+      <h2>Partner Login</h2><div class="rule"></div>
+      <form data-kind="login" novalidate>
+        <input name="email" type="email" placeholder="Partner Email*" required>
+        <input name="password" type="password" placeholder="Password*" required>
+        <button class="btn primary" type="submit">Sign In →</button>
+        <div class="small">Not a partner yet? <a href="#" data-modal="partner" style="color:var(--pink)">Apply now</a></div>
+      </form>`,
+  video:()=>`<span class="tag">Product Tour</span>
+      <h2>WhizEats Dine-in Walkthrough</h2><div class="rule"></div>
+      <div class="video"><div class="play"><svg width="26" height="26" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg></div></div>
+      <p>The recorded product tour is coming soon. Want to see it live? Book a personalised demo with our team.</p>
+      <div class="actions"><button class="btn ghost" data-close>Close</button><button class="btn primary" data-go="demo">Book a Live Demo</button></div>`,
+};
+
+function openModal(name,data={}){
+  modal.innerHTML=`<button class="x" data-close aria-label="Close">×</button>`+MODALS[name](data);
+  overlay.classList.add('open');
+  const f=modal.querySelector('input,select'); if(f && !f.value) setTimeout(()=>f.focus(),60);
+  const form=modal.querySelector('form');
+  if(form){
+    const file=form.querySelector('input[type=file]');
+    if(file) file.addEventListener('change',()=>{ file.nextElementSibling.textContent=file.files[0]?file.files[0].name:'Attach resume (PDF, DOC)'; });
+    form.addEventListener('submit',e=>{
+      e.preventDefault();
+      const bad=[...form.querySelectorAll('[required]')].filter(i=>!i.value.trim() || (i.type==='email' && !/^\S+@\S+\.\S+$/.test(i.value)));
+      form.querySelectorAll('.err').forEach(i=>i.classList.remove('err'));
+      if(bad.length){ bad.forEach(i=>i.classList.add('err')); bad[0].focus(); toast('Please complete the required fields.'); return; }
+      const d=Object.fromEntries(new FormData(form));
+      const kind=form.dataset.kind;
+      if(kind==='login'){ closeModal(); toast('Partner portal is coming soon — thanks for signing in!'); return; }
+      openModal(kind+'Done',d);
+    });
+  }
+}
+function closeModal(){ overlay.classList.remove('open'); }
+overlay.addEventListener('click',e=>{
+  if(e.target===overlay || e.target.closest('[data-close]')) return closeModal();
+  const g=e.target.closest('[data-go]'); if(g){ closeModal(); go(g.dataset.go); }
+  const m=e.target.closest('[data-modal]'); if(m){ e.preventDefault(); openModal(m.dataset.modal); }
+});
+
+/* ---------- toolbar ---------- */
+const jump=document.getElementById('jump');
+jump.innerHTML=ORDER.map(k=>`<option value="${k}">${PAGES[k].title}</option>`).join('');
+jump.addEventListener('change',()=>go(jump.value));
+document.getElementById('backBtn').addEventListener('click',()=>history.length>1?history.back():go('home'));
+const hsBtn=document.getElementById('hsBtn');
+function toggleHs(){ document.body.classList.toggle('show-hs'); hsBtn.classList.toggle('on'); }
+hsBtn.addEventListener('click',toggleHs);
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') closeModal();
+  if((e.key==='h'||e.key==='H') && !e.target.closest('input,textarea,select')) toggleHs();
+});
+
+if(new URLSearchParams(location.search).has('hotspots')) toggleHs();
+
+// preload all screens for instant navigation
+ORDER.forEach(k=>{ const i=new Image(); i.src='images/'+PAGES[k].img; });
+
+render(location.hash.replace('#/','')||'home');
+</script>
+</body>
+</html>
