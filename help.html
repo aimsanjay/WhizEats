@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Help Center — WhizEats</title>
+<meta name="description" content="Find answers, guides and resources to get the most out of WhizEats.">
+<link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="icon" type="image/png" href="favicon.png" sizes="64x64">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/site.css">
+</head>
+<body class="preload" data-page="help">
+<main>
+
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <nav class="crumbs" aria-label="Breadcrumb"><a href="home.html"><i data-ic="home"></i>Home</a><i data-ic="chev-right" class="sep"></i><span class="here" aria-current="page">Help Center</span></nav>
+        <h1 class="h1">Help <span class="accent">Center</span></h1>
+        <p class="lead" style="margin-top:16px">Find answers, guides and resources to get the most out of WhizEats. We’re here to help.</p>
+        <form class="searchbar" role="search"><i data-ic="search"></i>
+          <label class="sr-only" for="help-q">Search the Help Center</label>
+          <input id="help-q" type="search" placeholder="Search for a topic, question or keyword…" data-search="articles">
+          <button class="btn btn-primary" type="submit">Search</button></form>
+        <div class="pillars">
+          <a class="pillar" href="guides.html"><div class="icon-circle"><i data-ic="book"></i></div><strong>Step-by-Step<br>Guides</strong></a>
+          <a class="pillar" href="#topics"><div class="icon-circle"><i data-ic="gear"></i></div><strong>Product<br>Support</strong></a>
+          <a class="pillar" href="#" data-modal="video" data-title="WhizEats Video Tutorials"><div class="icon-circle"><i data-ic="video"></i></div><strong>Video<br>Tutorials</strong></a>
+          <a class="pillar" href="#support"><div class="icon-circle"><i data-ic="headset"></i></div><strong>Get in Touch<br>with Support</strong></a>
+        </div>
+      </div>
+      <div class="hero-media right"><img src="assets/img/help-hero.jpg" alt="A WhizEats support agent with a headset at a laptop"></div>
+    </div>
+  </section>
+
+  <section class="section" id="topics" style="scroll-margin-top:90px">
+    <div class="container">
+      <div class="section-head reveal"><h2 class="h2">Browse Help Topics</h2><span class="rule"></span></div>
+      <div class="grid grid-6 reveal">
+        <a class="card center" href="guides.html"><div class="icon-circle lg"><i data-ic="store"></i></div><h3>Getting Started</h3><p>Set up your account, complete your restaurant profile and get up and running quickly.</p></a>
+        <a class="card center" href="guides.html"><div class="icon-circle lg orange"><i data-ic="gear"></i></div><h3>Restaurant Management</h3><p>Learn how to manage menus, orders, tables, staff and daily operations.</p></a>
+        <a class="card center" href="guides.html"><div class="icon-circle lg green"><i data-ic="card"></i></div><h3>Orders &amp; Payments</h3><p>Find help with order processing, payments, refunds and transaction management.</p></a>
+        <a class="card center" href="guides.html"><div class="icon-circle lg violet"><i data-ic="chart"></i></div><h3>Reports &amp; Analytics</h3><p>Understand your business insights, reports and performance metrics.</p></a>
+        <a class="card center" href="guides.html"><div class="icon-circle lg"><i data-ic="plug"></i></div><h3>Integrations</h3><p>Learn about integrations with online ordering platforms, payment gateways and more.</p></a>
+        <a class="card center" href="guides.html"><div class="icon-circle lg blue"><i data-ic="user"></i></div><h3>Account &amp; Settings</h3><p>Manage your account, users, permissions and other settings.</p></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section tight">
+    <div class="container help-bottom">
+      <div class="panel reveal">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px">
+          <h3 style="display:flex;align-items:center;gap:10px;margin:0"><i data-ic="file" class="accent"></i>Popular Articles</h3>
+          <a class="link-more" href="guides.html">View All Articles <i data-ic="arrow"></i></a>
+        </div>
+        <ul class="article-list" id="articles" data-list>
+          <li class="post"><a href="#" data-soon="This article is coming soon."><i data-ic="file"></i>How to set up your restaurant on WhizEats<i data-ic="chev-right"></i></a></li>
+          <li class="post"><a href="#" data-soon="This article is coming soon."><i data-ic="file"></i>Managing staff roles and permissions<i data-ic="chev-right"></i></a></li>
+          <li class="post"><a href="#" data-soon="This article is coming soon."><i data-ic="file"></i>Adding and managing your menu items<i data-ic="chev-right"></i></a></li>
+          <li class="post"><a href="#" data-soon="This article is coming soon."><i data-ic="file"></i>Integrating with online food delivery platforms<i data-ic="chev-right"></i></a></li>
+          <li class="post"><a href="refund.html"><i data-ic="file"></i>How to process a refund<i data-ic="chev-right"></i></a></li>
+          <li class="post"><a href="#" data-soon="This article is coming soon."><i data-ic="file"></i>Troubleshooting common issues<i data-ic="chev-right"></i></a></li>
+          <li class="post"><a href="#" data-soon="This article is coming soon."><i data-ic="file"></i>Generating sales reports<i data-ic="chev-right"></i></a></li>
+          <li class="post"><a href="pricing.html"><i data-ic="file"></i>Updating your billing information<i data-ic="chev-right"></i></a></li>
+        </ul>
+        <p class="empty" style="margin-top:14px">No articles match your search. Contact our support team below.</p>
+      </div>
+
+      <div class="panel reveal" id="support" style="scroll-margin-top:90px">
+        <div class="feature-card"><div class="icon-circle lg"><i data-ic="headset"></i></div>
+          <div><h3 style="font-size:22px;margin:0">Still Need Help?</h3><p>Our support team is here to assist you.</p></div></div>
+        <div class="support">
+          <a href="#" data-soon="Live chat is coming soon — call or email us meanwhile."><i data-ic="chat"></i><strong>Live Chat</strong>Chat with our team in real time</a>
+          <a href="mailto:info@wizardcomm.net"><i data-ic="mail"></i><strong>Email Support</strong>info@wizardcomm.net<small>We reply within 24 hours</small></a>
+          <a href="tel:+919830359903"><i data-ic="phone"></i><strong>Call Us</strong>+91 9830359903<small>Mon – Sat, 9AM – 6PM</small></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blog — WhizEats</title>
+<meta name="description" content="Insights, ideas and practical tips to help you run a smarter, more profitable restaurant.">
+<link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="icon" type="image/png" href="favicon.png" sizes="64x64">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/site.css">
+</head>
+<body class="preload" data-page="blog">
+<main>
+
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <nav class="crumbs" aria-label="Breadcrumb"><a href="home.html"><i data-ic="home"></i>Home</a><i data-ic="chev-right" class="sep"></i><span class="here" aria-current="page">Blog</span></nav>
+        <h1 class="h1">Bl<span class="accent">og</span></h1>
+        <p class="lead" style="margin-top:16px">Insights, ideas and practical tips to help you run a smarter, more profitable restaurant.</p>
+        <div class="pillars">
+          <div class="pillar"><div class="icon-circle"><i data-ic="book"></i></div><strong>Expert<br>Insights</strong></div>
+          <div class="pillar"><div class="icon-circle"><i data-ic="gear"></i></div><strong>Industry<br>Trends</strong></div>
+          <div class="pillar"><div class="icon-circle"><i data-ic="bulb"></i></div><strong>Tips &amp; Best<br>Practices</strong></div>
+          <div class="pillar"><div class="icon-circle"><i data-ic="users"></i></div><strong>Stories from<br>the Community</strong></div>
+        </div>
+      </div>
+      <div class="hero-media right"><img src="assets/img/blog-hero.jpg" alt="The WhizEats blog open on a laptop in a café"></div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:36px">
+    <div class="container">
+      <div class="filter-row">
+        <form class="searchbar square" role="search" onsubmit="return false"><i data-ic="search"></i>
+          <label class="sr-only" for="blog-q">Search articles</label>
+          <input id="blog-q" type="search" placeholder="Search articles, topics or keywords…" data-search="posts"></form>
+        <div class="filters" role="group" aria-label="Filter by category">
+          <button class="on" data-cat="" aria-pressed="true">All Posts</button>
+          <button data-cat="management">Restaurant Management</button>
+          <button data-cat="food">Food &amp; Dining</button>
+          <button data-cat="tech">Technology</button>
+          <button data-cat="growth">Growth &amp; Marketing</button>
+          <button data-cat="cx">Customer Experience</button>
+          <button data-cat="stories">Success Stories</button>
+        </div>
+      </div>
+
+      <div class="grid grid-4" id="posts" data-list>
+        <a class="card post" href="#" data-cat="management" data-soon="The full article is coming soon.">
+          <div class="thumb"><img src="assets/img/blog-1.jpg" alt="Restaurant Management: a manager using a tablet" loading="lazy"></div>
+          <div class="body"><h3>How to Streamline Your Restaurant Operations in 2025</h3>
+            <p>Discover practical strategies to simplify daily operations, reduce costs, and improve efficiency with smart technology.</p>
+            <div class="meta"><span><i data-ic="calendar"></i>Oct 5, 2025</span><span><i data-ic="clock"></i>5 min read</span><span class="go"><i data-ic="chev-right"></i></span></div></div></a>
+        <a class="card post" href="#" data-cat="growth" data-soon="The full article is coming soon.">
+          <div class="thumb"><img src="assets/img/blog-2.jpg" alt="Growth &amp; Marketing: a busy restaurant dining room" loading="lazy"></div>
+          <div class="body"><h3>10 Proven Ways to Attract More Diners to Your Restaurant</h3>
+            <p>From digital marketing to loyalty programs, explore actionable ideas that bring more customers through your doors.</p>
+            <div class="meta"><span><i data-ic="calendar"></i>Sep 28, 2025</span><span><i data-ic="clock"></i>6 min read</span><span class="go"><i data-ic="chev-right"></i></span></div></div></a>
+        <a class="card post" href="#" data-cat="food" data-soon="The full article is coming soon.">
+          <div class="thumb"><img src="assets/img/blog-3.jpg" alt="Food &amp; Dining: a colourful grain bowl" loading="lazy"></div>
+          <div class="body"><h3>Menu Trends to Watch: What Diners Love in 2025</h3>
+            <p>Explore the latest food trends, popular cuisine styles and how to keep your menu fresh and exciting for your customers.</p>
+            <div class="meta"><span><i data-ic="calendar"></i>Sep 20, 2025</span><span><i data-ic="clock"></i>4 min read</span><span class="go"><i data-ic="chev-right"></i></span></div></div></a>
+        <a class="card post" href="#" data-cat="tech" data-soon="The full article is coming soon.">
+          <div class="thumb"><img src="assets/img/blog-4.jpg" alt="Technology: the WhizEats app on a phone" loading="lazy"></div>
+          <div class="body"><h3>Why a Restaurant Management System is a Game Changer</h3>
+            <p>Learn how the right restaurant management software can help you save time, improve customer experience and grow your business.</p>
+            <div class="meta"><span><i data-ic="calendar"></i>Sep 15, 2025</span><span><i data-ic="clock"></i>5 min read</span><span class="go"><i data-ic="chev-right"></i></span></div></div></a>
+      </div>
+      <p class="empty">No articles match your search yet. Try another keyword or category.</p>
+    </div>
+  </section>
+
+  <section class="section tight">
+    <div class="container">
+      <div class="commit reveal">
+        <div class="icon-circle lg"><i data-ic="file"></i></div>
+        <div><h3>Stay Updated</h3><p>Subscribe to our blog for the latest insights, tips and trends in the restaurant industry.</p>
+          <form class="searchbar" data-subscribe style="max-width:460px;margin-top:14px"><i data-ic="mail"></i>
+            <label class="sr-only" for="sub-email">Email address</label>
+            <input id="sub-email" type="email" placeholder="Your email address" required><button class="btn btn-primary" type="submit">Subscribe</button></form></div>
+        <div class="script">Together for a safer, better dining experience.</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+<script src="assets/js/site.js"></script>
+</body>
+</html>
